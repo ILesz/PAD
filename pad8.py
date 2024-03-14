@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import math
 from scipy.stats import t
 from scipy import stats
@@ -64,9 +65,61 @@ print()
 print(model_df['coef'])
 print()
 
+def cov(x, y):
+    mean_x = x.mean()
+    mean_y = y.mean()
+    n = x.shape[0]
+    sub_x = [i - mean_x for i in x]
+    sub_y = [i - mean_y for i in y]
+    return sum([sub_x[i]*sub_y[i] for i in range(n)])/(n-1)
+
+def correlation(x, y):
+    std_x = x.std()
+    std_y = y.std()
+    c = cov(x, y)
+    return c/(std_x*std_y)
+    
+def scatter_plot(x, y, xlabel, ylabel):
+    plt.scatter(x, y)
+    m, b = np.polyfit(x, y, 1)
+    plt.plot(x, m*x+b)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+
+corr1 = correlation(df['Gender'], df['Age'])
+print('corralation of gender and age', corr1)
+corr2 = correlation(df['Gender'], df['Annual Income (k$)'])
+print('correlation of gender and income', corr2)
+corr3 = correlation(df['Age'], df['Annual Income (k$)'])
+print('correlation of age and income', corr3)
+
+scatter_plot(df['Gender'], df['Age'], 'Gender', 'Age')
+scatter_plot(df['Gender'], df['Annual Income (k$)'], 'Gender', 'Income')
+scatter_plot(df['Age'], df['Annual Income (k$)'], 'Age', 'Income')
+
+#rejecting gender
+
+X = df[['Age', 'Annual Income (k$)']]
+y = df['Spending Score (1-100)']
+
+X = sm.add_constant(X)
+model = sm.OLS(y, X).fit()
+print(model.summary())
+pred = model.predict()
+
+model_df = pd.read_html(model.summary().tables[1].as_html(),header=0,index_col=0)[0]
+print(model_df['P>|t|'])
+print()
+print(model_df['std err'])
+print()
+print(model_df['coef'])
+print()
+
+'''
 P1 = calculate_P(df['Gender'], df['Age'])
 P2 = calculate_P(df['Gender'], df['Annual Income (k$)'])
 P3 = calculate_P(df['Age'], df['Annual Income (k$)'])
 print_null(P1, alpha)
 print_null(P2, alpha)
-print_null(P3, alpha)
+print_null(P3, alpha)'''
